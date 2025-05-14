@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}استعراض جميع الشقق{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="card shadow-sm p-4">
+
+    <!-- ✅ زر الرجوع في الأعلى على اليسار -->
+    <div class="d-flex justify-content-start mb-2">
+      <a href="{% url 'building_list' %}" class="btn btn-outline-dark">
+        ← الرجوع إلى صفحة العمائر
+      </a>
+    </div>
+
+    <!-- ✅ العنوان في المنتصف -->
+    <h4 class="text-center text-primary mb-4">
+      🏘️ جميع الشقق المسجلة
+    </h4>
+
+    {% if apartments %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>العمارة</th>
+              <th>اسم الشقة</th>
+              <th>عدد الغرف</th>
+              <th>الصالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for apt in apartments %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ apt.building.name }}</td>
+                <td>{{ apt.name }}</td>
+                <td>{{ apt.room_count }}</td>
+                <td>
+                  {% if apt.has_living_room %}
+                    <span class="badge bg-success">فيها</span>
+                  {% else %}
+                    <span class="badge bg-secondary">بدون</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-center">لا توجد شقق مسجلة حالياً.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

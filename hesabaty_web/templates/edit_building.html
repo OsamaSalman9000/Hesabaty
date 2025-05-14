@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}تعديل عمارة{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="card shadow-sm p-4">
+    <h4 class="mb-4 text-center text-primary">
+      <i class="bi bi-building-check"></i> تعديل / استعراض العمارة
+    </h4>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">اسم العمارة</label>
+        <input type="text" name="name" value="{{ building.name }}" class="form-control" required>
+      </div>
+
+      <h5 class="mt-4 mb-3">قائمة الشقق</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>اسم الشقة</th>
+              <th>عدد الغرف</th>
+              <th>فيها صالة؟</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for apt in apartments %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ apt.name }}</td>
+                <td>{{ apt.room_count }}</td>
+                <td>
+                  {% if apt.has_living_room %}
+                    نعم
+                  {% else %}
+                    لا
+                  {% endif %}
+                </td>
+                <td>
+                  <input type="checkbox" name="delete_apartments[]" value="{{ apt.id }}">
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <button type="submit" class="btn btn-primary mt-3 w-100">
+        <i class="bi bi-save"></i> حفظ التعديلات
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

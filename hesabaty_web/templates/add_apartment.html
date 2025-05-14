@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}إضافة شقة{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm p-4">
+        
+        <!-- زر الرجوع -->
+        <div class="mb-3 text-start">
+          <a href="{% url 'building_list' %}" class="btn btn-outline-dark btn-sm">
+            ← الرجوع إلى إدارة العمائر
+          </a>
+        </div>
+
+        <h4 class="mb-4 text-primary text-center">
+          🏢 إضافة شقة إلى العمارة: {{ building.name }}
+        </h4>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">رقم الشقة</label>
+            {{ form.number }}
+            {% if form.number.errors %}
+              <div class="text-danger small">{{ form.number.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">عدد الغرف</label>
+            {{ form.room_count }}
+            {% if form.room_count.errors %}
+              <div class="text-danger small">{{ form.room_count.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-check mb-3">
+            {{ form.has_living_room }}
+            <label class="form-check-label">هل فيها صالة؟</label>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-save"></i> حفظ الشقة
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

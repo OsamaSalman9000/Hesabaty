@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}قائمة الفواتير{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-primary">📄 الفواتير</h4>
+    <a href="{% url 'add_invoice' %}" class="btn btn-success">➕ إضافة فاتورة</a>
+  </div>
+
+  <!-- ✅ التصفية -->
+  <form method="get" class="row g-2 mb-4">
+    <div class="col-md-3">
+      <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-outline-primary w-100">عرض الفواتير</button>
+    </div>
+    <div class="col-md-3">
+      <a href="{% url 'invoice_list' %}" class="btn btn-outline-dark w-100">📅 فواتير اليوم</a>
+    </div>
+  </form>
+
+  <!-- ✅ ملخص -->
+  <div class="alert alert-info d-flex justify-content-between">
+    <span>📌 إجمالي الفواتير: <strong>{{ total_amount }} ريال</strong></span>
+    <span>✅ المدفوع: <strong>{{ total_paid }} ريال</strong></span>
+  </div>
+
+  {% if invoices %}
+    <div class="table-responsive">
+      <table class="table table-striped text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>المستأجر</th>
+            <th>الشقة</th>
+            <th>المبلغ</th>
+            <th>المدفوع</th>
+            <th>نوع الإيجار</th>
+            <th>الدخول</th>
+            <th>الخروج</th>
+            <th>الحالة</th>
+            <th>الخيارات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in invoices %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ i.tenant.name }}</td>
+              <td>{{ i.apartment.name }}</td>
+              <td>{{ i.amount }}</td>
+              <td>{{ i.amount_paid }}</td>
+              <td>{{ i.get_rent_type_display }}</td>
+              <td>{{ i.check_in_datetime|date:"Y-m-d" }}</td>
+              <td>{{ i.check_out_datetime|date:"Y-m-d" }}</td>
+              <td>
+                {% if i.amount_paid == i.amount %}
+                  <span class="badge bg-success">مدفوع</span>
+                {% elif i.amount_paid > 0 %}
+                  <span class="badge bg-warning text-dark">مدفوع جزئياً</span>
+                {% else %}
+                  <span class="badge bg-danger">غير مدفوع</span>
+                {% endif %}
+              </td>
+              <td class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="{% url 'edit_invoice' i.id %}" class="btn btn-sm btn-warning">تعديل</a>
+                <a href="{% url 'invoice_detail' i.id %}" class="btn btn-sm btn-info">عرض</a>
+                <form method="post" action="{% url 'delete_invoice' i.id %}" onsubmit="return confirm('هل أنت متأكد؟');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">حذف</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-center mt-4">لا توجد فواتير ضمن الفترة المحددة.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

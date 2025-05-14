@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}إضافة مصروف{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm p-4">
+                <h4 class="mb-4 text-center text-primary fw-bold">➕ إضافة مصروف جديد</h4>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">المبلغ</label>
+                            {{ form.amount }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الفئة</label>
+                            {{ form.category }}
+                        </div>
+
+                        <div class="col-md-12" id="custom-category-container" style="display:none;">
+                            <label class="form-label">تصنيف مخصص</label>
+                            {{ form.custom_category }}
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">الوصف</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">نطاق المصروف</label>
+                            {{ form.project_scope }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">شهري متكرر</label>
+                            {{ form.is_recurring }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="{% url 'expense_list' %}" class="btn btn-outline-secondary">🔙 رجوع</a>
+                        <button type="submit" class="btn btn-success">💾 حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // عرض حقل التصنيف المخصص إذا اختار "أخرى"
+    document.addEventListener('DOMContentLoaded', function () {
+        const categoryField = document.querySelector('#id_category');
+        const customCategoryContainer = document.querySelector('#custom-category-container');
+
+        function toggleCustomCategory() {
+            if (categoryField.value === 'other') {
+                customCategoryContainer.style.display = 'block';
+            } else {
+                customCategoryContainer.style.display = 'none';
+            }
+        }
+
+        categoryField.addEventListener('change', toggleCustomCategory);
+        toggleCustomCategory();  // للتفعيل وقت التحميل
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}تفاصيل الفاتورة{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="card shadow-sm p-4">
+    <h4 class="text-center text-primary mb-4">📄 تفاصيل الفاتورة رقم {{ invoice.id }}</h4>
+
+    <table class="table table-bordered">
+      <tr>
+        <th>المستأجر</th>
+        <td>{{ invoice.tenant.name }}</td>
+      </tr>
+      <tr>
+        <th>رقم الجوال</th>
+        <td>{{ invoice.tenant.phone_number }}</td>
+      </tr>
+      <tr>
+        <th>العمارة</th>
+        <td>{{ invoice.building.name }}</td>
+      </tr>
+      <tr>
+        <th>الشقة</th>
+        <td>{{ invoice.apartment.name }}</td>
+      </tr>
+      <tr>
+        <th>نوع الإيجار</th>
+        <td>{{ invoice.get_rent_type_display }}</td>
+      </tr>
+      <tr>
+        <th>المبلغ الإجمالي</th>
+        <td>{{ invoice.amount }} ريال</td>
+      </tr>
+      <tr>
+        <th>المدفوع</th>
+        <td>{{ invoice.amount_paid }} ريال</td>
+      </tr>
+      <tr>
+        <th>حالة الدفع</th>
+        <td>
+          {% if invoice.amount_paid == invoice.amount %}
+            <span class="badge bg-success">مدفوع</span>
+          {% elif invoice.amount_paid > 0 %}
+            <span class="badge bg-warning text-dark">مدفوع جزئياً</span>
+          {% else %}
+            <span class="badge bg-danger">غير مدفوع</span>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>تاريخ الدخول</th>
+        <td>{{ invoice.check_in_datetime|date:"Y-m-d H:i" }}</td>
+      </tr>
+      <tr>
+        <th>تاريخ الخروج</th>
+        <td>{{ invoice.check_out_datetime|date:"Y-m-d H:i" }}</td>
+      </tr>
+      <tr>
+        <th>تاريخ الدفع</th>
+        <td>{{ invoice.payment_date|date:"Y-m-d H:i" }}</td>
+      </tr>
+      <tr>
+        <th>أنشئت بواسطة</th>
+        <td>{{ invoice.user.username }}</td>
+      </tr>
+    </table>
+
+    <div class="text-center mt-4">
+      <a href="{% url 'invoice_list' %}" class="btn btn-outline-dark">← الرجوع لقائمة الفواتير</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

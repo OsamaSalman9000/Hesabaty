@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}إضافة عمارة جديدة{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm p-4">
+        <h4 class="mb-4 text-primary text-center">
+          <i class="bi bi-building-add"></i> إضافة عمارة جديدة
+        </h4>
+
+        <!-- ✅ رسائل Django هنا -->
+        {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">اسم العمارة</label>
+            <input type="text" name="name" class="form-control" placeholder="اسم العمارة" required>
+          </div>
+
+          <hr class="my-4">
+          <h5 class="mb-3">تفاصيل الشقق داخل العمارة</h5>
+
+          <div id="distribution-rows">
+            <!-- ✅ صف مبدئي ظاهر -->
+            <div class="row g-2 mb-3 align-items-end">
+              <div class="col-md-3">
+                <input type="number" name="start_number[]" class="form-control" placeholder="رقم البداية">
+              </div>
+              <div class="col-md-3">
+                <input type="number" name="count[]" class="form-control" placeholder="عدد الشقق">
+              </div>
+              <div class="col-md-3">
+                <input type="number" name="rooms[]" class="form-control" placeholder="عدد الغرف">
+              </div>
+              <div class="col-md-3 form-check ps-4">
+                <input type="checkbox" class="form-check-input" name="living[]" value="yes" id="living-1">
+                <label class="form-check-label" for="living-1">🛋 فيها صالة؟</label>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-outline-primary btn-sm mb-3" onclick="addDistributionRow()">
+            <i class="bi bi-plus-circle"></i> إضافة توزيع شقق آخر
+          </button>
+
+          <button type="submit" class="btn btn-success w-100">حفظ العمارة وإنشاء الشقق</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let livingId = 2;
+
+  function addDistributionRow() {
+    const container = document.getElementById('distribution-rows');
+    const row = document.createElement('div');
+    row.className = 'row g-2 mb-3 align-items-end';
+    row.innerHTML = `
+      <div class="col-md-3">
+        <input type="number" name="start_number[]" class="form-control" placeholder="رقم البداية">
+      </div>
+      <div class="col-md-3">
+        <input type="number" name="count[]" class="form-control" placeholder="عدد الشقق">
+      </div>
+      <div class="col-md-3">
+        <input type="number" name="rooms[]" class="form-control" placeholder="عدد الغرف">
+      </div>
+      <div class="col-md-3 form-check ps-4">
+        <input type="checkbox" class="form-check-input" name="living[]" value="yes" id="living-${livingId}">
+        <label class="form-check-label" for="living-${livingId}">🛋 فيها صالة؟</label>
+      </div>
+    `;
+    container.appendChild(row);
+    livingId++;
+  }
+</script>
+
+{% endblock %}

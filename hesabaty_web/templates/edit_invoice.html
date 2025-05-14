@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}تعديل فاتورة{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7">
+      <div class="card shadow-sm p-4">
+        <h4 class="text-center mb-4 text-warning">📝 تعديل الفاتورة رقم {{ invoice.id }}</h4>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">اسم المستأجر</label>
+              {{ form.tenant_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">رقم الجوال</label>
+              {{ form.tenant_phone }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">الشقة</label>
+              {{ form.apartment }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">المبلغ</label>
+              {{ form.amount }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">المدفوع</label>
+              {{ form.amount_paid }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">نوع الإيجار</label>
+              {{ form.rent_type }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">تاريخ الدخول</label>
+              {{ form.check_in_datetime }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">تاريخ الخروج</label>
+              {{ form.check_out_datetime }}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mt-4">💾 حفظ التعديلات</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

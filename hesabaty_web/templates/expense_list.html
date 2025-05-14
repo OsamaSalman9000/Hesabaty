@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}المصروفات{% endblock %}
+
+{% block content %}
+<!-- ✅ عنوان الصفحة -->
+<div class="mb-5 mt-4">
+    <h2 class="text-center text-primary fw-bold mb-4">💸 لوحة المصروفات</h2>
+</div>
+
+<!-- ✅ ملخص المصروفات -->
+<div class="row text-center mb-5 g-3">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body">
+                <h5 class="card-title text-primary">إجمالي المصروفات</h5>
+                <p class="card-text fs-4 fw-bold">{{ total }} ر.س</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-body">
+                <h5 class="card-title text-success">مصروفات مرتبطة بالمشروع</h5>
+                <p class="card-text fs-5">{{ total_related }} ر.س</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <h5 class="card-title text-danger">مصروفات غير مرتبطة</h5>
+                <p class="card-text fs-5">{{ total_unrelated }} ر.س</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ فلاتر -->
+<div class="mb-4 text-center">
+    <a href="?filter=related" class="btn btn-outline-primary me-2 mb-2">🔌 مرتبط بالمشروع</a>
+    <a href="?filter=unrelated" class="btn btn-outline-danger me-2 mb-2">🔌 غير مرتبط بالمشروع</a>
+    <a href="?filter=utilities" class="btn btn-outline-info me-2 mb-2">💧 كهرباء & ماء</a>
+    <a href="?filter=salary" class="btn btn-outline-warning me-2 mb-2">👨‍💼 رواتب</a>
+    <a href="?filter=rent" class="btn btn-outline-success me-2 mb-2">🏢 إيجار</a>
+    <a href="?filter=other" class="btn btn-outline-dark mb-2">📦 أخرى</a>
+</div>
+
+<!-- ✅ زر الإضافة -->
+<div class="text-end mb-4">
+    <a href="{% url 'add_expense' %}" class="btn btn-success">
+        ➕ إضافة صرف
+    </a>
+</div>
+
+<!-- ✅ جدول المصروفات -->
+<div class="table-responsive">
+  <table class="table table-bordered text-center align-middle shadow-sm">
+    <thead class="table-light">
+      <tr>
+        <th>التاريخ</th>
+        <th>الفئة</th>
+        <th>التصنيف المخصص</th>
+        <th>الوصف</th>
+        <th>المبلغ</th>
+        <th>النطاق</th>
+        <th>متكرر</th>
+        <th>الخيارات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td>{{ e.created_at|date:"Y-m-d" }}</td>
+        <td>{{ e.get_category_display }}</td>
+        <td>{{ e.custom_category|default:"-" }}</td>
+        <td>{{ e.description|default:"-" }}</td>
+        <td class="
+          {% if e.amount < 500 %}text-success
+          {% elif e.amount < 1000 %}text-warning
+          {% else %}text-danger{% endif %}
+          fw-bold">
+          {{ e.amount }} ر.س
+        </td>
+        <td>{{ e.get_project_scope_display }}</td>
+        <td>
+          {% if e.is_recurring %}
+            <span class="badge bg-info text-dark">شهري متكرر</span>
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'edit_expense' e.id %}" class="btn btn-sm btn-outline-primary me-1">
+                ✏️ تعديل
+            </a>
+            <a href="{% url 'delete_expense' e.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذا المصروف؟');">
+                🗑️ حذف
+            </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8">لا توجد مصروفات حالياً.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

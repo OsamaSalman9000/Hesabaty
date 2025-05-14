@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}إدارة العمائر{% endblock %}
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>🏢 قائمة العمائر</h4>
+    <div class="d-flex gap-2">
+      <a href="{% url 'building_create' %}" class="btn btn-success">➕ إضافة عمارة</a>
+      <a href="{% url 'view_all_apartments' %}" class="btn btn-outline-secondary">
+        🏘️ استعراض جميع الشقق
+      </a>
+    </div>
+  </div>
+
+  {% if buildings %}
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>اسم العمارة</th>
+          <th>عدد الشقق</th>
+          <th>الخيارات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in buildings %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ b.name }}</td>
+            <td>{{ b.apartment_count }}</td>
+            <td class="d-flex justify-content-center gap-2 flex-wrap">
+              <!-- زر تعديل -->
+              <a href="{% url 'edit_building' b.id %}" class="btn btn-sm btn-warning">
+                <i class="bi bi-pencil"></i> تعديل/استعراض
+              </a>
+
+              <!-- زر حذف -->
+              <form method="post" action="{% url 'delete_building' b.id %}" onsubmit="return confirm('هل أنت متأكد أنك تريد حذف العمارة؟');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <i class="bi bi-trash"></i> حذف
+                </button>
+              </form>
+
+              <!-- زر إضافة شقة -->
+              <a href="{% url 'add_apartment' b.id %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> إضافة شقة
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-center">لا توجد عمائر مسجلة حالياً.</p>
+  {% endif %}
+
+</div>
+
+{% endblock %}
