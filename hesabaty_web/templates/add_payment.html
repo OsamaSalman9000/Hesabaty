@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}إضافة دفعة{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm p-4">
+        <h4 class="text-center text-success mb-4">➕ تسجيل دفعة جديدة</h4>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">اختر الفاتورة</label>
+            {{ form.invoice }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">المبلغ المدفوع</label>
+            {{ form.amount }}
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">💳 حفظ الدفعة</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

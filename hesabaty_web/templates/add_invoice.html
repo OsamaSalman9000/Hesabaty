@@ -10,7 +10,7 @@
 
         <form method="post" novalidate>
           {% csrf_token %}
-          
+
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">اسم المستأجر</label>
@@ -25,11 +25,11 @@
               {{ form.apartment }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">المبلغ</label>
+              <label class="form-label">المبلغ الكلي</label>
               {{ form.amount }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">المدفوع</label>
+              <label class="form-label">المبلغ المدفوع (اختياري)</label>
               {{ form.amount_paid }}
             </div>
             <div class="col-md-6">

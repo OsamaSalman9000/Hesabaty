@@ -6,8 +6,11 @@ from .models import Tenant
 from django import forms
 from .models import Apartment, Invoice, Tenant
 from django.utils import timezone
-from django import forms
 from .models import Expense
+from django.db.models import F
+from .models import Apartment, Invoice
+from django import forms
+from .models import Invoice
 
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -46,16 +49,23 @@ class TenantForm(forms.ModelForm):
 
 class InvoiceForm(forms.Form):
     tenant_name = forms.CharField(label="اسم المستأجر", max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    tenant_phone = forms.CharField(label="رقم جوال المستأجر", max_length=15, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    
+    tenant_phone = forms.CharField(label="رقم الجوال", max_length=15, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
     apartment = forms.ModelChoiceField(
         queryset=Apartment.objects.all(),
         label="الشقة",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
-    amount = forms.DecimalField(label="المبلغ", max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
-    amount_paid = forms.DecimalField(label="المبلغ المدفوع", max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    amount = forms.DecimalField(label="المبلغ الكلي", max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+
+    amount_paid = forms.DecimalField(
+        label="المبلغ المدفوع (اختياري)",
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
 
     rent_type = forms.ChoiceField(
         choices=Invoice.RENT_TYPE_CHOICES,
@@ -66,22 +76,6 @@ class InvoiceForm(forms.Form):
     check_in_datetime = forms.DateTimeField(label="تاريخ الدخول", widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}))
     check_out_datetime = forms.DateTimeField(label="تاريخ الخروج", widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        from .models import Apartment, Invoice
-        active_apartment_ids = Invoice.objects.filter(
-            check_out_datetime__gte=timezone.now()
-        ).values_list('apartment_id', flat=True)
-
-        choices = []
-        for apt in Apartment.objects.all():
-            label = f"{apt.name}"
-            if apt.id in active_apartment_ids:
-                label += " 🔴 (مؤجرة الآن)"
-            choices.append((apt.id, label))
-
-        self.fields['apartment'].choices = choices
 
 class ExpenseForm(forms.ModelForm):
     class Meta:
@@ -90,3 +84,17 @@ class ExpenseForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class PaymentForm(forms.Form):
+    invoice = forms.ModelChoiceField(
+        queryset=Invoice.objects.all(),
+        label="اختر الفاتورة",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    amount = forms.DecimalField(
+        label="المبلغ المدفوع",
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )

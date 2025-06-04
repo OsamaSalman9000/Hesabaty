@@ -60,31 +60,31 @@ class Invoice(models.Model):
     building = models.ForeignKey(Building, on_delete=models.CASCADE)
     apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE)
-    
+
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    
+
+    # ✅ تعريف ثابت خيارات نوع الإيجار
     RENT_TYPE_CHOICES = [
         ('daily', 'يومي'),
         ('monthly', 'شهري'),
         ('yearly', 'سنوي'),
     ]
     rent_type = models.CharField(max_length=20, choices=RENT_TYPE_CHOICES)
-    
+
     check_in_datetime = models.DateTimeField()
     check_out_datetime = models.DateTimeField()
-    
     created_at = models.DateTimeField(auto_now_add=True)
-    payment_date = models.DateTimeField(blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        if not self.payment_date:
-            self.payment_date = self.created_at or timezone.now()
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"فاتورة {self.id} - {self.tenant.name}"
 
+    @property
+    def total_paid(self):
+        return sum(p.amount for p in self.payments.all())
+
+    @property
+    def is_fully_paid(self):
+        return self.total_paid >= self.amount
 
 # 🟦 6. Reservations Table
 class Reservation(models.Model):
@@ -143,3 +143,13 @@ class Rental(models.Model):
 
     def __str__(self):
         return f"{self.tenant.name} استأجر {self.apartment.name}"
+
+# 9. Payment Table
+class Payment(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_at = models.DateTimeField(auto_now_add=True)
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"دفعة {self.amount} لفاتورة {self.invoice.id}"

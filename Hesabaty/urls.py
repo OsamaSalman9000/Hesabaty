@@ -43,4 +43,6 @@ urlpatterns = [
     path('expenses/add/', views.add_expense, name='add_expense'),
     path('expenses/<int:expense_id>/edit/', views.edit_expense, name='edit_expense'),
     path('expenses/<int:expense_id>/delete/', views.delete_expense, name='delete_expense'),
+    path('payments/add/', views.add_payment, name='add_payment'),
+    path('payments/report/', views.daily_payments, name='daily_payments'),
 ]

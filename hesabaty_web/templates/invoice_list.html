@@ -54,14 +54,14 @@
               <td>{{ i.tenant.name }}</td>
               <td>{{ i.apartment.name }}</td>
               <td>{{ i.amount }}</td>
-              <td>{{ i.amount_paid }}</td>
+              <td>{{ i.total_paid }}</td>
               <td>{{ i.get_rent_type_display }}</td>
               <td>{{ i.check_in_datetime|date:"Y-m-d" }}</td>
               <td>{{ i.check_out_datetime|date:"Y-m-d" }}</td>
               <td>
-                {% if i.amount_paid == i.amount %}
+                {% if i.total_paid == i.amount %}
                   <span class="badge bg-success">مدفوع</span>
-                {% elif i.amount_paid > 0 %}
+                {% elif i.total_paid > 0 %}
                   <span class="badge bg-warning text-dark">مدفوع جزئياً</span>
                 {% else %}
                   <span class="badge bg-danger">غير مدفوع</span>

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}دفعات اليوم{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+  <h4 class="text-primary mb-4 text-center">💳 تقرير الدفعات</h4>
+
+  <form method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+      <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-outline-primary w-100">عرض التقرير</button>
+    </div>
+  </form>
+
+  <div class="alert alert-info text-center">
+    ✅ إجمالي الدفعات: <strong>{{ total_paid }} ريال</strong>
+  </div>
+
+  {% if payments %}
+    <div class="table-responsive">
+      <table class="table table-striped text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>رقم الفاتورة</th>
+            <th>المستأجر</th>
+            <th>المبلغ</th>
+            <th>تاريخ الدفع</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in payments %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>
+                <a href="{% url 'invoice_detail' p.invoice.id %}">#{{ p.invoice.id }}</a>
+              </td>
+              <td>{{ p.invoice.tenant.name }}</td>
+              <td>{{ p.amount }} ريال</td>
+              <td>{{ p.paid_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-center">لا توجد دفعات في الفترة المحددة.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

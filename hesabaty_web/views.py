@@ -28,9 +28,11 @@ from .models import Tenant, Apartment, Invoice, Reservation, Rental
 from .forms import InvoiceForm
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect
-from .models import Expense
-from .forms import ExpenseForm
+from .models import Expense, Payment
+from .forms import ExpenseForm, PaymentForm
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
+from django.utils import timezone
 
 # Create your views here.
 
@@ -236,19 +238,25 @@ def delete_tenant(request, tenant_id):
         return redirect('tenant_list')
     return render(request, 'tenant_confirm_delete.html', {'tenant': tenant})
 
+from django.db.models import Q
+
 def invoice_list(request):
     today = timezone.now().date()
-    
+
     start_date = request.GET.get('start_date', today.strftime('%Y-%m-%d'))
     end_date = request.GET.get('end_date', today.strftime('%Y-%m-%d'))
 
     start = datetime.strptime(start_date, '%Y-%m-%d')
     end = datetime.strptime(end_date, '%Y-%m-%d')
 
-    invoices = Invoice.objects.filter(check_in_datetime__date__gte=start, check_in_datetime__date__lte=end)
+    # ✅ نجلب الفواتير من أحد حالتين:
+    invoices = Invoice.objects.filter(
+        Q(created_at__date__range=(start, end)) |
+        Q(payments__paid_at__date__range=(start, end))
+    ).distinct()
 
     total_amount = sum(i.amount for i in invoices)
-    total_paid = sum(i.amount_paid for i in invoices)
+    total_paid = sum(i.total_paid for i in invoices)
 
     context = {
         'invoices': invoices,
@@ -264,59 +272,39 @@ def add_invoice(request):
     if request.method == 'POST':
         form = InvoiceForm(request.POST)
         if form.is_valid():
-            name = form.cleaned_data['tenant_name']
-            phone = form.cleaned_data['tenant_phone']
+            tenant_name = form.cleaned_data['tenant_name']
+            tenant_phone = form.cleaned_data['tenant_phone']
             apartment = form.cleaned_data['apartment']
             amount = form.cleaned_data['amount']
-            amount_paid = form.cleaned_data['amount_paid']
+            amount_paid = form.cleaned_data.get('amount_paid', 0)
             rent_type = form.cleaned_data['rent_type']
             check_in = form.cleaned_data['check_in_datetime']
             check_out = form.cleaned_data['check_out_datetime']
 
-            # إنشاء أو جلب المستأجر
-            tenant, created = Tenant.objects.get_or_create(
-                phone_number=phone,
-                defaults={'name': name, 'user': request.user}
+            tenant, _ = Tenant.objects.get_or_create(
+                phone_number=tenant_phone,
+                defaults={'name': tenant_name, 'user': request.user}
             )
 
-            # إنشاء أو تحديث الفاتورة
             invoice = Invoice.objects.create(
                 user=request.user,
                 building=apartment.building,
                 apartment=apartment,
                 tenant=tenant,
                 amount=amount,
-                amount_paid=amount_paid,
                 rent_type=rent_type,
                 check_in_datetime=check_in,
                 check_out_datetime=check_out
             )
 
-            # تحديث أو إنشاء Reservation
-            reservation, _ = Reservation.objects.update_or_create(
-                invoice=invoice,
-                defaults={
-                    'apartment': apartment,
-                    'tenant': tenant,
-                    'check_in_datetime': check_in,
-                    'check_out_datetime': check_out,
-                    'rent_type': rent_type,
-                    'is_active': True
-                }
-            )
+            if amount_paid > 0:
+                Payment.objects.create(
+                    invoice=invoice,
+                    amount=amount_paid,
+                    added_by=request.user
+                )
 
-            # تحديث أو إنشاء Rental
-            rental, _ = Rental.objects.update_or_create(
-                invoice=invoice,
-                defaults={
-                    'tenant': tenant,
-                    'apartment': apartment,
-                    'start_date': check_in.date(),
-                    'end_date': check_out.date()
-                }
-            )
-
-            messages.success(request, 'تم إنشاء الفاتورة بنجاح.')
+            messages.success(request, "تم إنشاء الفاتورة بنجاح.")
             return redirect('invoice_list')
     else:
         form = InvoiceForm()
@@ -331,45 +319,18 @@ def edit_invoice(request, invoice_id):
     if request.method == 'POST':
         form = InvoiceForm(request.POST)
         if form.is_valid():
-            # تحديث بيانات المستأجر
             tenant.name = form.cleaned_data['tenant_name']
             tenant.phone_number = form.cleaned_data['tenant_phone']
             tenant.save()
 
-            # تحديث الفاتورة
             apartment = form.cleaned_data['apartment']
             invoice.apartment = apartment
             invoice.building = apartment.building
             invoice.amount = form.cleaned_data['amount']
-            invoice.amount_paid = form.cleaned_data['amount_paid']
             invoice.rent_type = form.cleaned_data['rent_type']
             invoice.check_in_datetime = form.cleaned_data['check_in_datetime']
             invoice.check_out_datetime = form.cleaned_data['check_out_datetime']
             invoice.save()
-
-            # تحديث Reservation
-            Reservation.objects.update_or_create(
-                invoice=invoice,
-                defaults={
-                    'apartment': apartment,
-                    'tenant': tenant,
-                    'check_in_datetime': invoice.check_in_datetime,
-                    'check_out_datetime': invoice.check_out_datetime,
-                    'rent_type': invoice.rent_type,
-                    'is_active': True
-                }
-            )
-
-            # تحديث Rental
-            Rental.objects.update_or_create(
-                invoice=invoice,
-                defaults={
-                    'tenant': tenant,
-                    'apartment': apartment,
-                    'start_date': invoice.check_in_datetime.date(),
-                    'end_date': invoice.check_out_datetime.date()
-                }
-            )
 
             messages.success(request, "تم تعديل الفاتورة بنجاح.")
             return redirect('invoice_list')
@@ -379,7 +340,6 @@ def edit_invoice(request, invoice_id):
             'tenant_phone': tenant.phone_number,
             'apartment': invoice.apartment,
             'amount': invoice.amount,
-            'amount_paid': invoice.amount_paid,
             'rent_type': invoice.rent_type,
             'check_in_datetime': invoice.check_in_datetime,
             'check_out_datetime': invoice.check_out_datetime,
@@ -468,3 +428,51 @@ def delete_expense(request, expense_id):
     expense = get_object_or_404(Expense, id=expense_id, user=request.user)
     expense.delete()
     return redirect('expense_list')
+
+@login_required
+def add_payment(request):
+    invoice_id = request.GET.get('invoice_id')
+    initial_data = {'invoice': invoice_id} if invoice_id else None
+
+    if request.method == 'POST':
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            invoice = form.cleaned_data['invoice']
+            amount = form.cleaned_data['amount']
+
+            Payment.objects.create(
+                invoice=invoice,
+                amount=amount,
+                added_by=request.user
+            )
+
+            messages.success(request, f"تم تسجيل دفعة بقيمة {amount} ريال.")
+            return redirect('invoice_detail', invoice_id=invoice.id)
+    else:
+        form = PaymentForm(initial=initial_data)
+
+    return render(request, 'add_payment.html', {'form': form})
+
+@login_required
+def daily_payments(request):
+    from datetime import datetime
+    from django.utils import timezone
+
+    today = timezone.now().date()
+    start_date = request.GET.get('start_date', today.strftime('%Y-%m-%d'))
+    end_date = request.GET.get('end_date', today.strftime('%Y-%m-%d'))
+
+    start = datetime.strptime(start_date, '%Y-%m-%d')
+    end = datetime.strptime(end_date, '%Y-%m-%d')
+
+    payments = Payment.objects.filter(paid_at__date__gte=start, paid_at__date__lte=end)
+
+    total_paid = sum(p.amount for p in payments)
+
+    context = {
+        'payments': payments,
+        'total_paid': total_paid,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'daily_payments.html', context)
